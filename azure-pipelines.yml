@@ -67,8 +67,10 @@ stages:
         templateFile: 'IaC/IAM.template'
         templateParametersSource: 'inline'
         templateParameters: |
-          [{"parameterKey": "Environment",
-            "parameterValue":"$(paramvalue)"}]
+          [{"ParameterKey": "Environment",
+            "ParameterValue":"$(paramvalue)"}]
+
+
     
 
 
