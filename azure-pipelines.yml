@@ -68,7 +68,7 @@ stages:
         templateParametersSource: 'inline'
         templateParameters: |
           [{"ParameterKey": "Environment",
-            "ParameterValue":"$(paramvalue)"}]
+            "ParameterValue":"val"}]
 
 
     
