@@ -20,18 +20,18 @@ stages:
 - stage: Build_frontend
   displayName: Build image
   jobs:
-#  - job: BuildFrontend
-#    displayName: BuildFrontend
-#    steps:
-#    - task: Docker@2
-#      displayName: Build and push an image
-#      inputs:
-#        command: buildAndPush
-#        containerRegistry: 'dockerhubserviceconnection'
-#        dockerfile: 'Frontend/Dockerfile'
-#        repository: $(reponame)
-#        tags: |
-#          $(tagfrontend)
+  - job: BuildFrontend
+    displayName: BuildFrontend
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image
+      inputs:
+        command: buildAndPush
+        containerRegistry: 'dockerhubserviceconnection'
+        dockerfile: 'Frontend/Dockerfile'
+        repository: $(reponame)
+        tags: |
+          $(tagfrontend)
   - job: BuildBackend
     displayName: BuildBackend
     steps:
