@@ -17,9 +17,9 @@ variables:
   reponame: 'gr8riaz/cpsretest01'
 
 stages:
-- stage: Build_frontend
-  displayName: Build image
-  jobs:
+#- stage: Build_and_deploy_to_AWS
+#  displayName: Build image
+#  jobs:
 #  - job: BuildFrontend
 #    displayName: BuildFrontend
 #    steps:
@@ -32,18 +32,41 @@ stages:
 #        repository: $(reponame)
 #        tags: |
 #          $(tagfrontend)
-  - job: BuildBackend
-    displayName: BuildBackend
+    
+#  - job: BuildBackend
+#    displayName: BuildBackend
+#    steps:
+#    - task: Docker@2
+#      displayName: Build and Push
+#      inputs:
+#        containerRegistry: 'dockerhubserviceconnection'
+#        command: buildAndPush
+#        dockerfile: 'Backend/TodoList.Api/Dockerfile'
+#        repository: $(reponame)   
+#        tags: |
+#          $(tagbackend)
+
+- stage: Deployment
+  displayName: Deploy to AWS Fargate
+#  dependsOn: Build_and_deploy_to_AWS
+  jobs:
+  - job: Deploy
+    displayName: Deploying application to containers
     steps:
-    - task: Docker@2
-      displayName: Build and Push
+#    - task: ManualIntervention@8
+#      inputs:
+#        instructions: 'Please approve the deployment to Cloudformation'
+#        emailRecipients: 'gr8riaz@outlook.com'
+    - task: CloudFormationCreateOrUpdateStack@1
       inputs:
-        containerRegistry: 'dockerhubserviceconnection'
-        command: buildAndPush
-        dockerfile: 'Backend/TodoList.Api/Dockerfile'
-        repository: $(reponame)   
-        tags: |
-          $(tagbackend)
+        awsCredentials: 'aws-cloudformation-serviceconnection'
+        regionName: 'ap-southeast-2'
+        stackName: 'deploy-vpc'
+        templateSource: 'file'
+        templateFile: 'IaC/IAM.template'
+        templateParametersFile: 'IaC/IAMParams.json'
+
+    
 
 
 
