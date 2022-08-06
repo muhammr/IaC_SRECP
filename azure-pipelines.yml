@@ -35,6 +35,6 @@ stages:
       displayName: Build an image
       inputs:
         command: build
-        dockerfile: 'Backend/Dockerfile'
+        dockerfile: 'Backend/TodoList.Api/Dockerfile'
         tags: |
           $(tag)
