@@ -12,8 +12,9 @@ pool:
   vmImage: ubuntu-latest
     
 variables:
-  tag: '$(Build.BuildId)'
-  backendImageName: 'gr8riaz/cpsretest01'
+  tagbackend: 'cptodoapi-$(Build.BuildId)'
+  tagfrontend: 'cptodoui-$(Build.BuildId)'
+  reponame: 'gr8riaz/cpsretest01'
 
 stages:
 - stage: Build_frontend
@@ -23,31 +24,26 @@ stages:
 #    displayName: BuildFrontend
 #    steps:
 #    - task: Docker@2
-#      displayName: Build an image
+#      displayName: Build and push an image
 #      inputs:
-#        command: build 
+#        command: buildAndPush
+#        containerRegistry: 'dockerhubserviceconnection'
 #        dockerfile: 'Frontend/Dockerfile'
+#        repository: $(reponame)
 #        tags: |
-#          $(tag)
+#          $(tagfrontend)
   - job: BuildBackend
     displayName: BuildBackend
     steps:
-#    - task: Docker@2
-#      displayName: Build an image
-#      inputs:
-#        command: build
-#        dockerfile: 'Backend/TodoList.Api/Dockerfile'
-#        tags: |
-#          $(tag)
     - task: Docker@2
       displayName: Build and Push
       inputs:
         containerRegistry: 'dockerhubserviceconnection'
         command: buildAndPush
         dockerfile: 'Backend/TodoList.Api/Dockerfile'
-        repository: $(backendImageName)   
+        repository: $(reponame)   
         tags: |
-          $(tag)
+          $(tagbackend)
 
 
 
