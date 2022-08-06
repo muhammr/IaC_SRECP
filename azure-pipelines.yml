@@ -15,7 +15,7 @@ variables:
   tagbackend: 'cptodoapi-$(Build.BuildId)'
   tagfrontend: 'cptodoui-$(Build.BuildId)'
   reponame: 'gr8riaz/cpsretest01'
-  paramvalue: "MyPersonalEnvironment"
+  paramvalue: "prod"
 
 stages:
 #- stage: Build_and_deploy_to_AWS
@@ -68,7 +68,7 @@ stages:
         templateParametersSource: 'inline'
         templateParameters: |
           [{"ParameterKey": "Environment",
-            "ParameterValue":"val"}]
+            "ParameterValue":"$(paramvalue)"}]
 
 
     
