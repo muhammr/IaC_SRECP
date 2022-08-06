@@ -13,6 +13,7 @@ pool:
     
 variables:
   tag: '$(Build.BuildId)'
+  backendImageName: 'cpsretest01/cptodoapi'
 
 stages:
 - stage: Build_frontend
@@ -24,7 +25,7 @@ stages:
     - task: Docker@2
       displayName: Build an image
       inputs:
-        command: build
+        command: build 
         dockerfile: 'Frontend/Dockerfile'
         tags: |
           $(tag)
@@ -42,12 +43,15 @@ stages:
       displayName: Login to Docker Hub
       inputs:
         command: login
-        containerRegistry: gr8riaz/cpsretest01
+        containerRegistry: dockerhubserviceconnection
     - task: Docker@2
       displayName: Build and Push
       inputs:
         command: buildAndPush
-        repository: contosoRepository  gr8riaz/Gh4z4l4Ri4z$$  
+        dockerfile: 'Backend/TodoList.Api/Dockerfile'
+        repository: $(backendImageName)   
         tags: |
           $(tag)
+
+
 
