@@ -8,16 +8,15 @@ WORKDIR /src
 COPY ["TodoList.Api/TodoList.Api.csproj", "TodoList.Api/"]
 COPY ["TodoList.Data/TodoList.Data.csproj", "TodoList.Data/"]
 COPY ["TodoList.Business/TodoList.Business.csproj", "TodoList.Business/"]
-#RUN dotnet restore "TodoList.Api/TodoList.Api.csproj"
+RUN dotnet restore "TodoList.Api/TodoList.Api.csproj"
 COPY . .
 WORKDIR "/src/TodoList.Api"
-#RUN dotnet build "TodoList.Api.csproj" -c Release -o /app/build
+RUN dotnet build "TodoList.Api.csproj" -c Release -o /app/build
 
-#FROM build AS publish
-#RUN dotnet publish "TodoList.Api.csproj" -c Release -o /app/publish
+FROM build AS publish
+RUN dotnet publish "TodoList.Api.csproj" -c Release -o /app/publish
 
-#FROM base AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-#CMD "echo Started the container"
 ENTRYPOINT ["dotnet", "TodoList.Api.dll"]
