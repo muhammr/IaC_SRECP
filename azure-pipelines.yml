@@ -38,3 +38,16 @@ stages:
         dockerfile: 'Backend/TodoList.Api/Dockerfile'
         tags: |
           $(tag)
+    - task: Docker@2
+      displayName: Login to Docker Hub
+      inputs:
+        command: login
+        containerRegistry: gr8riaz/cpsretest01
+    - task: Docker@2
+      displayName: Build and Push
+      inputs:
+        command: buildAndPush
+        repository: contosoRepository  gr8riaz/Gh4z4l4Ri4z$$  
+        tags: |
+          $(tag)
+
