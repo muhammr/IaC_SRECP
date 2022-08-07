@@ -78,9 +78,9 @@ stages:
         templateParametersSource: 'inline'
         templateParameters: |
           [
-            {"ParameterKey": "RepositoryURIApp1",
+            {"ParameterKey": "RepositoryURIApp",
             "ParameterValue":"$(RepositoryURI):$(tagbackend)"},
-            {"ParameterKey": "RepositoryURIUI1",
+            {"ParameterKey": "RepositoryURIUI",
             "ParameterValue":"$(RepositoryURI):$(tagfrontend)"}
           ]
 
