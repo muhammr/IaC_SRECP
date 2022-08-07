@@ -228,6 +228,34 @@
             "VpcId" : { "Ref": "CommonVPC" },
             "Tags" :  [ { "Key": "Name", "Value":  "SecurityGroupA" } ]
           }
+        },
+        "SecurityGroupB" : {
+          "Type" : "AWS::EC2::SecurityGroup",
+          "Properties" : {
+            "GroupDescription" : "This group is created for the event lambda function to access RDS",
+            "SecurityGroupIngress" : [
+              { "IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1"}
+            ],
+            "SecurityGroupEgress" : [
+              { "IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "0.0.0.0/0" }
+            ],
+            "VpcId" : { "Ref": "CommonVPC" },
+            "Tags" :  [ { "Key": "Name", "Value":  "SecurityGroupB" } ]
+          }
+        },
+        "SecurityGroupC" : {
+          "Type" : "AWS::EC2::SecurityGroup",
+          "Properties" : {
+            "GroupDescription" : "This group is created for the event lambda function to access RDS",
+            "SecurityGroupIngress" : [
+              { "IpProtocol" : "tcp", "FromPort" : "5432", "ToPort" : "5440", "SourceSecurityGroupId":{ "Ref": "SecurityGroupB" }}
+            ],
+            "SecurityGroupEgress" : [
+              { "IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "0.0.0.0/0" }
+            ],
+            "VpcId" : { "Ref": "CommonVPC" },
+            "Tags" :  [ { "Key": "Name", "Value":  "SecurityGroupC" } ]
+          }
         }
     },
     "Outputs": {
@@ -279,6 +307,20 @@
         		"Export" : {
         			"Name" : {"Fn::Join": ["", ["SecurityGroupA-", {"Ref":"Environment"}]] }
       		}
-  		}
+  		},
+      "SecurityGroupB": {
+  			"Description" : "Security Group B created",
+        		"Value" : { "Ref" : "SecurityGroupB" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["SecurityGroupB-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "SecurityGroupC": {
+  			"Description" : "Security Group A created",
+        		"Value" : { "Ref" : "SecurityGroupC" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["SecurityGroupC-", {"Ref":"Environment"}]] }
+      		}
+  		},
     }
 }
