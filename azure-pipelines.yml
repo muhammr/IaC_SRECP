@@ -62,7 +62,7 @@ stages:
       inputs:
         awsCredentials: 'aws-cloudformation-serviceconnection'
         regionName: 'ap-southeast-2'
-        stackName: 'deploy-vpc'
+        stackName: 'deploy-vpc1'
         templateSource: 'file'
         templateFile: 'IaC/VPC.template'
         templateParametersSource: 'inline'
