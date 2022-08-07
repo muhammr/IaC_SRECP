@@ -436,7 +436,7 @@
                     "Ref": "AWS::StackName"
                 },
                 "Port": {
-                    "Ref": "ContainerPort"
+                    "Ref": "ContainerPortUI"
                 },
                 "Protocol": "TCP",
                 "VpcId": {
