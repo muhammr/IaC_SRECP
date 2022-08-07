@@ -279,20 +279,6 @@
         		"Export" : {
         			"Name" : {"Fn::Join": ["", ["SecurityGroupA-", {"Ref":"Environment"}]] }
       		}
-  		},
-      "SecurityGroupB": {
-  			"Description" : "Security Group B created",
-        		"Value" : { "Ref" : "SecurityGroupB" },
-        		"Export" : {
-        			"Name" : {"Fn::Join": ["", ["SecurityGroupB-", {"Ref":"Environment"}]] }
-      		}
-  		},
-      "SecurityGroupC": {
-  			"Description" : "Security Group A created",
-        		"Value" : { "Ref" : "SecurityGroupC" },
-        		"Export" : {
-        			"Name" : {"Fn::Join": ["", ["SecurityGroupC-", {"Ref":"Environment"}]] }
-      		}
   		}
     }
 }
