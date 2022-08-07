@@ -174,8 +174,7 @@
           "Condition": "createNatGateway",
           "Properties": {
             "RouteTableId": { "Ref": "PrivateRouteTableA" },
-            "DestinationCidrBlock": "0.0.0.0/0",
-            "NatGatewayId": { "Ref": "NATGateway1" }
+            "DestinationCidrBlock": "0.0.0.0/0"
           }
         },
         "PrivateSubnetARouteTableAssociation":{
@@ -197,8 +196,7 @@
           "Condition": "createNatGateway",
           "Properties": {
             "RouteTableId": { "Ref": "PrivateRouteTableB" },
-            "DestinationCidrBlock": "0.0.0.0/0",
-            "NatGatewayId": { "Ref": "NATGateway2" }
+            "DestinationCidrBlock": "0.0.0.0/0"
           }
         },
         "PrivateSubnetBRouteTableAssociation":{
