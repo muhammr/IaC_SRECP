@@ -46,12 +46,12 @@
         },
         "ContainerPortUI": {
             "Type": "Number",
-            "Default": 3000,
+            "Default": 80,
             "Description": "What port number the application inside the docker container is binding to"
         },
         "ContainerPortApp": {
             "Type": "Number",
-            "Default": 3002,
+            "Default": 80,
             "Description": "What port number the application inside the docker container is binding to"
         },
         "ContainerCpu": {
