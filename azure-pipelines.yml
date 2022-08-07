@@ -56,10 +56,6 @@ stages:
   - job: Deploy
     displayName: Deploying application to containers
     steps:
-    - task: ManualIntervention@8
-      inputs:
-        instructions: 'Please approve the deployment to Cloudformation'
-        emailRecipients: 'gr8riaz@outlook.com'
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'aws-cloudformation-serviceconnection'
