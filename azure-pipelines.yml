@@ -64,7 +64,19 @@ stages:
         regionName: 'ap-southeast-2'
         stackName: 'deploy-vpc'
         templateSource: 'file'
-        templateFile: 'IaC/IAM.template'
+        templateFile: 'IaC/VPC.template'
+        templateParametersSource: 'inline'
+        templateParameters: |
+          [{"ParameterKey": "Environment",
+            "ParameterValue":"$(paramvalue)"}]
+
+    - task: CloudFormationCreateOrUpdateStack@1
+      inputs:
+        awsCredentials: 'aws-cloudformation-serviceconnection'
+        regionName: 'ap-southeast-2'
+        stackName: 'deploy-vpc'
+        templateSource: 'file'
+        templateFile: 'IaC/Containers.template'
         templateParametersSource: 'inline'
         templateParameters: |
           [{"ParameterKey": "Environment",
