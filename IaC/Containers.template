@@ -284,30 +284,7 @@
                 },
                 "TaskDefinition": {
                     "Ref": "TaskDefinition"
-                },
-                "LoadBalancers": [
-                    {
-                        "ContainerName": {
-                            "Fn::Join": [
-                                "-",
-                                [
-                                    {
-                                        "Ref": "ServicePrefix"
-                                    },
-                                    {
-                                        "Ref": "AWS::StackName"
-                                    }
-                                ]
-                            ]
-                        },
-                        "ContainerPort": {
-                            "Ref": "ContainerPort"
-                        },
-                        "TargetGroupArn": {
-                            "Ref": "TargetGroup"
-                        }
-                    }
-                ]
+                }
             }
         },
         "ECSRole": {

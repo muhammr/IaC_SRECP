@@ -295,20 +295,6 @@
         		"Export" : {
         			"Name" : {"Fn::Join": ["", ["SecurityGroupC-", {"Ref":"Environment"}]] }
       		}
-  		},
-      "ElasticIPAddress1Output": {
-        "Description" : "ElasticIPAddress1",
-        		"Value" : { "Ref" : "ElasticIPAddress1" },
-        		"Export" : {
-        			"Name" : {"Fn::Join": ["", ["ElasticIPAddress1-", {"Ref":"Environment"}]] }
-      		}
-      },
-      "ElasticIPAddress2Output": {
-        "Description" : "ElasticIPAddress1",
-        		"Value" : { "Ref" : "ElasticIPAddress2" },
-        		"Export" : {
-        			"Name" : {"Fn::Join": ["", ["ElasticIPAddress2-", {"Ref":"Environment"}]] }
-      		}
-      }
+  		}
     }
 }
