@@ -36,12 +36,12 @@
         },
         "RepositoryURIApp": {
             "Type": "String",
-            "Default": "https://hub.docker.com/repository/gr8riaz/cpsretest01:cptodoapi-40",
+            "Default": "gr8riaz/cpsretest01:cptodoapi-40",
             "Description": "The repository URI of the docker image that contains the application process that will handle the traffic for this service, ex. nginx"
         },
         "RepositoryURIUI": {
             "Type": "String",
-            "Default": "https://hub.docker.com/repository/gr8riaz/cpsretest01:cptodoui-40",
+            "Default": "gr8riaz/cpsretest01:cptodoui-40",
             "Description": "The repository URI of the docker image that contains the application process that will handle the traffic for this service, ex. nginx"
         },
         "ContainerPortUI": {
