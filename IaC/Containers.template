@@ -90,7 +90,7 @@
             "Type": "AWS::ECS::TaskDefinition",
             "Properties": {
                 "Family": {"Fn::Join": ["-", [ {"Ref": "ServicePrefix"},{"Ref": "AWS::StackName"}]]},
-                "Cpu": {"Ref": "ContainerCpu"},
+                "Cpu": 1024,
                 "Memory": {"Ref": "ContainerMemory"},
                 "NetworkMode": "awsvpc",
                 "RequiresCompatibilities": ["FARGATE"],
