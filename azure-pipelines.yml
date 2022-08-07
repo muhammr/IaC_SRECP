@@ -15,49 +15,47 @@ variables:
   tagbackend: 'cptodoapi-$(Build.BuildId)'
   tagfrontend: 'cptodoui-$(Build.BuildId)'
   reponame: 'gr8riaz/cpsretest01'
-  paramvalue: "prod"
+  paramvalue: "dev"
+  RepositoryURI: "gr8riaz/cpsretest01"
+
 
 stages:
-#- stage: Build_and_deploy_to_AWS
-#  displayName: Build image
-#  jobs:
-#  - job: BuildFrontend
-#    displayName: BuildFrontend
-#    steps:
-#    - task: Docker@2
-#      displayName: Build and push an image
-#      inputs:
-#        command: buildAndPush
-#        containerRegistry: 'dockerhubserviceconnection'
-#        dockerfile: 'Frontend/Dockerfile'
-#        repository: $(reponame)
-#        tags: |
-#          $(tagfrontend)
+- stage: Build_and_deploy_to_AWS
+  displayName: Build image
+  jobs:
+  - job: BuildFrontend
+    displayName: BuildFrontend
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image
+      inputs:
+        command: buildAndPush
+        containerRegistry: 'dockerhubserviceconnection'
+        dockerfile: 'Frontend/Dockerfile'
+        repository: $(reponame)
+        tags: |
+          $(tagfrontend)
     
-#  - job: BuildBackend
-#    displayName: BuildBackend
-#    steps:
-#    - task: Docker@2
-#      displayName: Build and Push
-#      inputs:
-#        containerRegistry: 'dockerhubserviceconnection'
-#        command: buildAndPush
-#        dockerfile: 'Backend/TodoList.Api/Dockerfile'
-#        repository: $(reponame)   
-#        tags: |
-#          $(tagbackend)
+  - job: BuildBackend
+    displayName: BuildBackend
+    steps:
+    - task: Docker@2
+      displayName: Build and Push
+      inputs:
+        containerRegistry: 'dockerhubserviceconnection'
+        command: buildAndPush
+        dockerfile: 'Backend/TodoList.Api/Dockerfile'
+        repository: $(reponame)   
+        tags: |
+          $(tagbackend)
 
 - stage: Deployment
   displayName: Deploy to AWS Fargate
-#  dependsOn: Build_and_deploy_to_AWS
+  dependsOn: Build_and_deploy_to_AWS
   jobs:
   - job: Deploy
     displayName: Deploying application to containers
     steps:
-#    - task: ManualIntervention@8
-#      inputs:
-#        instructions: 'Please approve the deployment to Cloudformation'
-#        emailRecipients: 'gr8riaz@outlook.com'
     - task: CloudFormationCreateOrUpdateStack@1
       inputs:
         awsCredentials: 'aws-cloudformation-serviceconnection'
@@ -79,8 +77,12 @@ stages:
         templateFile: 'IaC/Containers.template'
         templateParametersSource: 'inline'
         templateParameters: |
-          [{"ParameterKey": "Environment",
-            "ParameterValue":"$(paramvalue)"}]
+          [
+            {"ParameterKey": "RepositoryURIApp1",
+            "ParameterValue":"$(RepositoryURI):$(tagbackend)"},
+            {"ParameterKey": "RepositoryURIUI1",
+            "ParameterValue":"$(RepositoryURI):$(tagfrontend)"}
+          ]
 
 
     
