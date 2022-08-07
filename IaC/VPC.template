@@ -321,6 +321,6 @@
         		"Export" : {
         			"Name" : {"Fn::Join": ["", ["SecurityGroupC-", {"Ref":"Environment"}]] }
       		}
-  		},
+  		}
     }
 }
