@@ -403,10 +403,10 @@
                     "Ref": "SourceAccessCIDR"
                 },
                 "FromPort": {
-                    "Ref": "ContainerPort"
+                    "Ref": "ContainerPortUI"
                 },
                 "ToPort": {
-                    "Ref": "ContainerPort"
+                    "Ref": "ContainerPortUI"
                 },
                 "IpProtocol": "tcp"
             }
