@@ -13,7 +13,8 @@
                         "RepositoryURIApp",
                         "RepositoryURIUI",
                         "SourceAccessCIDR",
-                        "ContainerPort",
+                        "ContainerPortApp",
+                        "ContainerPortUI",
                         "ContainerCpu",
                         "ContainerMemory",
                         "DesiredCount"
@@ -43,9 +44,14 @@
             "Default": "https://hub.docker.com/repository/gr8riaz/cpsretest01:cptodoapi-40",
             "Description": "The repository URI of the docker image that contains the application process that will handle the traffic for this service, ex. nginx"
         },
-        "ContainerPort": {
+        "ContainerPortUI": {
             "Type": "Number",
-            "Default": 80,
+            "Default": 3000,
+            "Description": "What port number the application inside the docker container is binding to"
+        },
+        "ContainerPortApp": {
+            "Type": "Number",
+            "Default": 3002,
             "Description": "What port number the application inside the docker container is binding to"
         },
         "ContainerCpu": {
@@ -117,7 +123,7 @@
                         "PortMappings": [
                             {
                                 "ContainerPort": {
-                                    "Ref": "ContainerPort"
+                                    "Ref": "ContainerPortApp"
                                 }
                             }
                         ],
@@ -186,7 +192,7 @@
                         "PortMappings": [
                             {
                                 "ContainerPort": {
-                                    "Ref": "ContainerPort"
+                                    "Ref": "ContainerPortUI"
                                 }
                             }
                         ],
