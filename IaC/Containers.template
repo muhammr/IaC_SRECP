@@ -118,8 +118,7 @@
                             {
                                 "ContainerPort": {
                                     "Ref": "ContainerPort"
-                                },
-                                "HostPort": 3002
+                                }
                             }
                         ],
                         "HealthCheck": {
@@ -188,8 +187,7 @@
                             {
                                 "ContainerPort": {
                                     "Ref": "ContainerPort"
-                                },
-                                "HostPort": 3000
+                                }
                             }
                         ],
                         "HealthCheck": {
