@@ -1,0 +1,314 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template will create a VPC with 2 private and 2 public subnet",
+    "Parameters": {
+      "Environment": {
+        "Type": "String",
+        "Default": "dev",
+        "AllowedValues": ["prod","dev","test"]
+      },
+      "isNatGatewayRequried":{
+        "Type": "String",
+        "Default": "false",
+        "AllowedValues": ["true","false"]
+      }
+    },
+    "Conditions": {
+      "VerifyRegion" : {"Fn::Equals" : [{"Fn::Sub" : "${AWS::Region}"}, "ap-southeast-2"]},
+      "createNatGateway": {"Fn::Equals" : [{ "Ref": "isNatGatewayRequried" }, "true"]},
+      "NVirginiaRegionCondition": {
+          "Fn::Equals": [
+              {
+                  "Ref": "AWS::Region"
+              },
+              "us-east-1"
+          ]
+      }
+    },
+    "Resources": {
+      "CommonVPC":  {
+        "Type": "AWS::EC2::VPC",
+          "Properties": {
+            "CidrBlock": "10.0.0.0/16",
+            "EnableDnsSupport": true,
+            "EnableDnsHostnames": true,
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Join" : ["",[ { "Ref": "AWS::StackName" }, "-VPC" ] ]} }]
+          }
+        },
+        "DHCPOptions": {
+            "Type": "AWS::EC2::DHCPOptions",
+            "Properties": {
+                "DomainName": {
+                    "Fn::If": [
+                        "NVirginiaRegionCondition",
+                        "ec2.internal",
+                        {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::Region"
+                                    },
+                                    ".compute.internal"
+                                ]
+                            ]
+                        }
+                    ]
+                },
+                "DomainNameServers": [
+                    "AmazonProvidedDNS"
+                ]
+            }
+        },
+        "VPCDHCPOptionsAssociation": {
+            "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "CommonVPC"
+                },
+                "DhcpOptionsId": {
+                    "Ref": "DHCPOptions"
+                }
+            }
+        },
+        "InternetGateway": {
+          "Type": "AWS::EC2::InternetGateway",
+          "DependsOn": "CommonVPC",
+          "Properties": {
+            "Tags": [{ "Key": "Name", "Value":  "Internet Gateway for VPC" }]
+          }
+        },
+        "AttachGateway": {
+          "Type": "AWS::EC2::VPCGatewayAttachment",
+          "Properties": {
+            "VpcId": { "Ref": "CommonVPC" },
+            "InternetGatewayId": { "Ref": "InternetGateway" }
+          }
+        },
+        "PublicSubnetA": {
+          "Type": "AWS::EC2::Subnet",
+          "Properties": {
+            "AvailabilityZone": { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "VpcId": { "Ref": "CommonVPC" },
+            "CidrBlock": "10.0.128.0/20",
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Sub" : "${AWS::Region}-PublicSubnetA"} }],
+            "MapPublicIpOnLaunch": true
+          }
+        },
+        "PublicSubnetB": {
+          "Type": "AWS::EC2::Subnet",
+          "Properties": {
+            "AvailabilityZone": { "Fn::Select" : [ 1, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "VpcId": { "Ref": "CommonVPC" },
+            "CidrBlock": "10.0.144.0/20",
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Sub" : "${AWS::Region}-PublicSubnetB"} }],
+            "MapPublicIpOnLaunch": true
+          }
+        },
+        "PublicRouteTable": {
+          "Type": "AWS::EC2::RouteTable",
+          "Properties": {
+            "VpcId": { "Ref": "CommonVPC" },
+            "Tags": [{ "Key": "Name", "Value":  "Routing Table for Public Subnet" }]
+          }
+        },
+        "PublicRouteA": {
+          "Type": "AWS::EC2::Route",
+          "DependsOn": "AttachGateway",
+          "Properties": {
+            "RouteTableId": { "Ref": "PublicRouteTable" },
+            "DestinationCidrBlock": "0.0.0.0/0",
+            "GatewayId": { "Ref": "InternetGateway" }
+          }
+        },
+        "PublicSubnetARouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+              "SubnetId": { "Ref": "PublicSubnetA" },
+              "RouteTableId": { "Ref": "PublicRouteTable" }
+            }
+        },
+        "PublicSubnetBRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+              "SubnetId": { "Ref": "PublicSubnetB" },
+              "RouteTableId": { "Ref": "PublicRouteTable" }
+            }
+        },
+        "PrivateSubnetA": {
+          "Type": "AWS::EC2::Subnet",
+          "Properties": {
+            "AvailabilityZone": { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "VpcId": { "Ref": "CommonVPC" },
+            "CidrBlock": "10.0.0.0/19",
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Sub" : "${AWS::Region}-PrivateSubnetA"} }]
+          }
+        },
+        "PrivateSubnetB": {
+          "Type": "AWS::EC2::Subnet",
+          "Properties": {
+            "AvailabilityZone": { "Fn::Select" : [ 1, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "VpcId": { "Ref": "CommonVPC" },
+            "CidrBlock": "10.0.32.0/19",
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Sub" : "${AWS::Region}-PrivateSubnetB"} }]
+          }
+        },
+        "PrivateSubnetC": {
+          "Type": "AWS::EC2::Subnet",
+          "Properties": {
+            "AvailabilityZone": { "Fn::Select" : [ 2, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "VpcId": { "Ref": "CommonVPC" },
+            "CidrBlock": "10.0.64.0/19",
+            "Tags": [{ "Key": "Name", "Value":  {"Fn::Sub" : "${AWS::Region}-PrivateSubnetC"} }]
+          }
+        },
+        "PrivateRouteTableA": {
+          "Type": "AWS::EC2::RouteTable",
+          "Properties": {
+            "VpcId": { "Ref": "CommonVPC" },
+            "Tags": [{ "Key": "Name", "Value":  "PrivateRouteTable" }]
+          }
+        },
+        "PrivateRouteA": {
+          "Type": "AWS::EC2::Route",
+          "Condition": "createNatGateway",
+          "Properties": {
+            "RouteTableId": { "Ref": "PrivateRouteTableA" },
+            "DestinationCidrBlock": "0.0.0.0/0",
+            "NatGatewayId": { "Ref": "NATGateway1" }
+          }
+        },
+        "PrivateSubnetARouteTableAssociation":{
+          "Type": "AWS::EC2::SubnetRouteTableAssociation",
+          "Properties": {
+            "SubnetId": { "Ref": "PrivateSubnetA" },
+            "RouteTableId": { "Ref": "PrivateRouteTableA" }
+          }
+        },
+        "PrivateRouteTableB": {
+          "Type": "AWS::EC2::RouteTable",
+          "Properties": {
+            "VpcId": { "Ref": "CommonVPC" },
+            "Tags": [{ "Key": "Name", "Value":  "PrivateRouteTableB" }]
+          }
+        },
+        "PrivateRouteB": {
+          "Type": "AWS::EC2::Route",
+          "Condition": "createNatGateway",
+          "Properties": {
+            "RouteTableId": { "Ref": "PrivateRouteTableB" },
+            "DestinationCidrBlock": "0.0.0.0/0",
+            "NatGatewayId": { "Ref": "NATGateway2" }
+          }
+        },
+        "PrivateSubnetBRouteTableAssociation":{
+          "Type": "AWS::EC2::SubnetRouteTableAssociation",
+          "Properties": {
+            "SubnetId": { "Ref": "PrivateSubnetB" },
+            "RouteTableId": { "Ref": "PrivateRouteTableB" }
+          }
+        },
+        "PrivateSubnetCRouteTableAssociation":{
+          "Type": "AWS::EC2::SubnetRouteTableAssociation",
+          "Properties": {
+            "SubnetId": { "Ref": "PrivateSubnetC" },
+            "RouteTableId": { "Ref": "PrivateRouteTableA" }
+          }
+        },
+        "SecurityGroupA" : {
+          "Type" : "AWS::EC2::SecurityGroup",
+          "Properties" : {
+            "GroupDescription" : "This security group is created for multi purpose e.g. for RDS, Lambda and other services whichever need it",
+            "SecurityGroupIngress" : [
+              { "IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : { "Ref": "PublicIP" } },
+              { "IpProtocol" : "tcp", "FromPort" : "443", "ToPort" : "443", "CidrIp" : { "Ref": "PublicIP" } },
+              { "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref": "PublicIP" } }
+            ],
+            "SecurityGroupEgress" : [
+              { "IpProtocol" : "-1", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : "0.0.0.0/0" }
+            ],
+            "VpcId" : { "Ref": "CommonVPC" },
+            "Tags" :  [ { "Key": "Name", "Value":  "SecurityGroupA" } ]
+          }
+        }
+    },
+    "Outputs": {
+      "VPC": {
+  			"Description" : "Common VPC created",
+        		"Value" : { "Ref" : "CommonVPC" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["CommonVPC-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "PublicSubnetA": {
+  			"Description" : "Public Subnet A created",
+        		"Value" : { "Ref" : "PublicSubnetA" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["PublicSubnetA-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "PublicSubnetB": {
+  			"Description" : "Public Subnet A created",
+        		"Value" : { "Ref" : "PublicSubnetB" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["PublicSubnetB-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "PrivateSubnetA": {
+  			"Description" : "Private Subnet A created",
+        		"Value" : { "Ref" : "PrivateSubnetA" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["PrivateSubnetA-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "PrivateSubnetB": {
+  			"Description" : "Private Subnet B created",
+        		"Value" : { "Ref" : "PrivateSubnetB" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["PrivateSubnetB-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "PrivateSubnetC": {
+  			"Description" : "Private Subnet C created",
+        		"Value" : { "Ref" : "PrivateSubnetC" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["PrivateSubnetC-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "SecurityGroupA": {
+  			"Description" : "Security Group A created",
+        		"Value" : { "Ref" : "SecurityGroupA" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["SecurityGroupA-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "SecurityGroupB": {
+  			"Description" : "Security Group B created",
+        		"Value" : { "Ref" : "SecurityGroupB" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["SecurityGroupB-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "SecurityGroupC": {
+  			"Description" : "Security Group A created",
+        		"Value" : { "Ref" : "SecurityGroupC" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["SecurityGroupC-", {"Ref":"Environment"}]] }
+      		}
+  		},
+      "ElasticIPAddress1Output": {
+        "Description" : "ElasticIPAddress1",
+        		"Value" : { "Ref" : "ElasticIPAddress1" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["ElasticIPAddress1-", {"Ref":"Environment"}]] }
+      		}
+      },
+      "ElasticIPAddress2Output": {
+        "Description" : "ElasticIPAddress1",
+        		"Value" : { "Ref" : "ElasticIPAddress2" },
+        		"Export" : {
+        			"Name" : {"Fn::Join": ["", ["ElasticIPAddress2-", {"Ref":"Environment"}]] }
+      		}
+      }
+    }
+}

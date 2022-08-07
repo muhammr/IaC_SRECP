@@ -1,0 +1,490 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template willbe used to create the Fargate containers for the application to be deployed there. Fargate  will be behind the Load Balancer. A Network Load Balancer is used here to make the performance better",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Configs for the Container"
+                    },
+                    "Parameters": [
+                        "ServicePrefix",
+                        "RepositoryURIApp",
+                        "RepositoryURIUI",
+                        "SourceAccessCIDR",
+                        "ContainerPort",
+                        "ContainerCpu",
+                        "ContainerMemory",
+                        "DesiredCount"
+                    ]
+                }
+            ]
+        }
+    },
+    "Parameters": {
+        "Environment": {
+          "Type": "String",
+          "Default": "dev",
+          "AllowedValues": ["prod","dev","test"]
+        },
+        "ServicePrefix": {
+            "Type": "String",
+            "Default": "Fargate-service-CPSRE",
+            "Description": "Fargate's Service Name"
+        },
+        "RepositoryURIApp": {
+            "Type": "String",
+            "Default": "https://hub.docker.com/repository/gr8riaz/cpsretest01:cptodoui-40",
+            "Description": "The repository URI of the docker image that contains the application process that will handle the traffic for this service, ex. nginx"
+        },
+        "RepositoryURIUI": {
+            "Type": "String",
+            "Default": "https://hub.docker.com/repository/gr8riaz/cpsretest01:cptodoapi-40",
+            "Description": "The repository URI of the docker image that contains the application process that will handle the traffic for this service, ex. nginx"
+        },
+        "ContainerPort": {
+            "Type": "Number",
+            "Default": 80,
+            "Description": "What port number the application inside the docker container is binding to"
+        },
+        "ContainerCpu": {
+            "Type": "Number",
+            "Default": 512,
+            "Description": "Value 1024 means 1 vCPU"
+        },
+        "ContainerMemory": {
+            "Type": "Number",
+            "Default": 1024,
+            "Description": "Memory in MBs"
+        },
+        "DesiredCount": {
+            "Type": "Number",
+            "Default": 1,
+            "Description": "How many copies of the service task to run"
+        },
+        "SourceAccessCIDR": {
+            "Type": "String",
+            "Description": "The CIDR IP range that is permitted to access the running tasks.",
+            "Default": "0.0.0.0/0"
+        }
+    },
+    "Mappings": {
+        "AWSAMIRegionMap": {
+            "AMI": {
+                "AWSNATHVM": "amzn-ami-vpc-nat-hvm-2017.03.0.20170401-x86_64-ebs"
+            },
+            "us-gov-west-1": {
+                "AWSNATHVM": "ami-3f0a8f5e"
+            }
+        }
+    },
+    "Resources": {
+        "TaskDefinition": {
+            "Type": "AWS::ECS::TaskDefinition",
+            "Properties": {
+                "Family": {"Fn::Join": ["-", [ {"Ref": "ServicePrefix"},{"Ref": "AWS::StackName"}]]},
+                "Cpu": {"Ref": "ContainerCpu"},
+                "Memory": {"Ref": "ContainerMemory"},
+                "NetworkMode": "awsvpc",
+                "RequiresCompatibilities": ["FARGATE"],
+                "ExecutionRoleArn": {"Ref": "ECSTaskExecutionRole"},
+                "TaskRoleArn": {"Ref": "AWS::NoValue"},
+                "ContainerDefinitions": [
+                    {
+                        "Name": {
+                            "Fn::Join": [
+                                "-app-",
+                                [
+                                    {
+                                        "Ref": "ServicePrefix"
+                                    },
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    }
+                                ]
+                            ]
+                        },
+                        "Cpu": {
+                            "Ref": "ContainerCpu"
+                        },
+                        "Memory": {
+                            "Ref": "ContainerMemory"
+                        },
+                        "Image": {
+                            "Ref": "RepositoryURIApp"
+                        },
+                        "PortMappings": [
+                            {
+                                "ContainerPort": {
+                                    "Ref": "ContainerPort"
+                                },
+                                "HostPort": 3002
+                            }
+                        ],
+                        "HealthCheck": {
+                            "Command": [
+                                true
+                            ],
+                            "Interval": 5,
+                            "Retries": 10,
+                            "StartPeriod": 5
+                        },
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Fn::Join": [
+                                        "/",
+                                        [
+                                            "ecs",
+                                            {
+                                                "Fn::Join": [
+                                                    "-",
+                                                    [
+                                                        {
+                                                            "Ref": "ServicePrefix"
+                                                        },
+                                                        {
+                                                            "Ref": "AWS::StackName"
+                                                        }
+                                                    ]
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "awslogs-region": {
+                                    "Ref": "AWS::Region"
+                                },
+                                "awslogs-stream-prefix": "ecs"
+                            }
+                        }
+                    },
+                    {
+                        "Name": {
+                            "Fn::Join": [
+                                "-UI-",
+                                [
+                                    {
+                                        "Ref": "ServicePrefix"
+                                    },
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    }
+                                ]
+                            ]
+                        },
+                        "Cpu": {
+                            "Ref": "ContainerCpu"
+                        },
+                        "Memory": {
+                            "Ref": "ContainerMemory"
+                        },
+                        "Image": {
+                            "Ref": "RepositoryURIUI"
+                        },
+                        "PortMappings": [
+                            {
+                                "ContainerPort": {
+                                    "Ref": "ContainerPort"
+                                },
+                                "HostPort": 3000
+                            }
+                        ],
+                        "HealthCheck": {
+                            "Command": [
+                                true
+                            ],
+                            "Interval": 5,
+                            "Retries": 10,
+                            "StartPeriod": 5
+                        },
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-group": {
+                                    "Fn::Join": [
+                                        "/",
+                                        [
+                                            "ecs",
+                                            {
+                                                "Fn::Join": [
+                                                    "-",
+                                                    [
+                                                        {
+                                                            "Ref": "ServicePrefix"
+                                                        },
+                                                        {
+                                                            "Ref": "AWS::StackName"
+                                                        }
+                                                    ]
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "awslogs-region": {
+                                    "Ref": "AWS::Region"
+                                },
+                                "awslogs-stream-prefix": "ecs"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "ECSCluster": {
+            "Type": "AWS::ECS::Cluster"
+        },
+        "Service": {
+            "Type": "AWS::ECS::Service",
+            "Properties": {
+                "ServiceName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "ServicePrefix"
+                            },
+                            {
+                                "Ref": "AWS::StackName"
+                            }
+                        ]
+                    ]
+                },
+                "Cluster": {"Ref": "ECSCluster"},
+                "LaunchType": "FARGATE",
+                "DeploymentConfiguration": {"MaximumPercent": 200,"MinimumHealthyPercent": 75},
+                "DesiredCount": {"Ref": "DesiredCount"},
+                "NetworkConfiguration": {
+                    "AwsvpcConfiguration": {
+                        "AssignPublicIp": "ENABLED",
+                        "SecurityGroups": [
+                            {"Ref": "FargateContainerSecurityGroup"},
+                            {
+                              "Fn::ImportValue": {
+                                "Fn::Sub": "SecurityGroupB-${Environment}"
+                              }
+                            }
+                        ],
+                        "Subnets": [
+                          {
+                            "Fn::ImportValue": {
+                              "Fn::Sub": "PrivateSubnetA-${Environment}"
+                            }
+                          },
+                          {
+                            "Fn::ImportValue": {
+                              "Fn::Sub": "PrivateSubnetB-${Environment}"
+                            }
+                          }
+                        ]
+                    }
+                },
+                "TaskDefinition": {
+                    "Ref": "TaskDefinition"
+                },
+                "LoadBalancers": [
+                    {
+                        "ContainerName": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "ServicePrefix"
+                                    },
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    }
+                                ]
+                            ]
+                        },
+                        "ContainerPort": {
+                            "Ref": "ContainerPort"
+                        },
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroup"
+                        }
+                    }
+                ]
+            }
+        },
+        "ECSRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ecs.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "ecs-service",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ec2:AttachNetworkInterface",
+                                        "ec2:CreateNetworkInterface",
+                                        "ec2:CreateNetworkInterfacePermission",
+                                        "ec2:DeleteNetworkInterface",
+                                        "ec2:DeleteNetworkInterfacePermission",
+                                        "ec2:Describe*",
+                                        "ec2:DetachNetworkInterface",
+                                        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+                                        "elasticloadbalancing:DeregisterTargets",
+                                        "elasticloadbalancing:Describe*",
+                                        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+                                        "elasticloadbalancing:RegisterTargets"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "ECSTaskExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ecs-tasks.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "AmazonECSTaskExecutionRolePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ecr:GetAuthorizationToken",
+                                        "ecr:BatchCheckLayerAvailability",
+                                        "ecr:GetDownloadUrlForLayer",
+                                        "ecr:BatchGetImage",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "FargateContainerSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Access to the Fargate containers",
+                "VpcId": {
+                  "Fn::ImportValue": {
+                    "Fn::Sub": "CommonVPC-${Environment}"
+                  }
+                }
+            }
+        },
+        "EcsSecurityGroupIngressFromClient": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "Description": "Ingress from external clients",
+                "GroupId": {
+                    "Ref": "FargateContainerSecurityGroup"
+                },
+                "CidrIp": {
+                    "Ref": "SourceAccessCIDR"
+                },
+                "FromPort": {
+                    "Ref": "ContainerPort"
+                },
+                "ToPort": {
+                    "Ref": "ContainerPort"
+                },
+                "IpProtocol": "tcp"
+            }
+        },
+        "EcsSecurityGroupIngressFromSelf": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "Description": "Ingress from other containers in the same security group",
+                "GroupId": {
+                    "Ref": "FargateContainerSecurityGroup"
+                },
+                "IpProtocol": -1,
+                "SourceSecurityGroupId": {
+                    "Ref": "FargateContainerSecurityGroup"
+                }
+            }
+        },
+        "TargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckIntervalSeconds": 30,
+                "HealthCheckProtocol": "TCP",
+                "HealthyThresholdCount": 10,
+                "UnhealthyThresholdCount": 10,
+                "TargetType": "ip",
+                "Name": {
+                    "Ref": "AWS::StackName"
+                },
+                "Port": {
+                    "Ref": "ContainerPort"
+                },
+                "Protocol": "TCP",
+                "VpcId": {
+                  "Fn::ImportValue": {
+                    "Fn::Sub": "CommonVPC-${Environment}"
+                  }
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "ClusterName": {
+            "Description": "The name of the ECS Fargate cluster",
+            "Value": {
+                "Ref": "ECSCluster"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "ClusterName"
+                        ]
+                    ]
+                }
+            }
+        }
+    }
+}
